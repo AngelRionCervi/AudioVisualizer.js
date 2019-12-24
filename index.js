@@ -1,6 +1,41 @@
-let frequencies;
+let fullFrequencies;
 let cfg = {};
 let canvas;
+
+function nearestPow2(nbr) {
+    if (nbr <= 32) {
+        return 32;
+    } else {
+        return Math.pow(2, Math.round(Math.log(nbr) / Math.log(2))); 
+    }
+}
+
+function splitUp(arr, n) {
+    let rest = arr.length % n // how much to divide
+    let restUsed = rest // to keep track of the division over the elements
+    let partLength = Math.floor(arr.length / n)
+    let result = [];
+
+    for (let i = 0; i < arr.length; i += partLength) {
+        let end = partLength + i
+        let add = false;
+
+        if (rest !== 0 && restUsed) { // should add one element for the division
+            end++;
+            restUsed--; // we've used one division element now
+            add = true;
+        }
+
+        let middle = Math.floor(end-(partLength/2))-1;
+        result.push(arr[middle]); // part of the array
+
+        if (add) {
+            i++; // also increment i in the case we added an extra element for division
+        }
+    }
+
+    return result;
+}
 
 function initVisualizer(c, s, f) {
     cfg = f;
@@ -12,8 +47,12 @@ function initVisualizer(c, s, f) {
     source = context.createMediaElementSource(audio);
     source.connect(analyser);
     analyser.connect(context.destination);
-    analyser.fftSize = 2048;
-    frequencies = new Uint8Array(analyser.frequencyBinCount);
+    analyser.fftSize = 4096;
+  
+    //frequencies = new Uint8Array(analyser.frequencyBinCount);
+    fullFrequencies = new Uint8Array(analyser.fftSize)
+    
+    //console.log(frequenciesFull, frequencies)
     audio.play();
 
     switch (cfg.type) {
@@ -40,18 +79,29 @@ function renderCircular() {
     ctx.arc(centerX, centerY, cfg.circularType.radius, 0, 2 * Math.PI);
     ctx.stroke();
 
-    analyser.getByteFrequencyData(frequencies);
-    ctx.translate(canvas.width / 2, canvas.height / 2)
-    for (let i = 0; i < cfg.barNbr; i++) {
+    analyser.getByteFrequencyData(fullFrequencies);
+
+    let freqs;
+    freqs = splitUp(fullFrequencies.slice(cfg.freqRange[0], cfg.freqRange[1]), cfg.barNbr)
+
+    if (cfg.circularType.skipNull) {
+        freqs = new Uint8Array(freqs.filter(el => el != 0));
+    } else {
+        freqs = new Uint8Array(freqs);
+    }
+
+    ctx.translate(canvas.width / 2, canvas.height / 2);
+    
+    for (let i = 0; i < freqs.length; i++) {
         
-        let barHeight = frequencies[i] * cfg.barHeightMult + cfg.minBarHeight;
+        let barHeight = freqs[i] * cfg.barHeightMult + cfg.minBarHeight;
         if (cfg.maxBarHeight && barHeight > cfg.maxBarHeight) {
             barHeight = cfg.maxBarHeight;
         }
 
         ctx.save();
-        ctx.rotate(i * Math.PI / (cfg.barNbr*0.5));
-        ctx.fillStyle = getBarColor(frequencies[i], ctx, barHeight);
+        ctx.rotate(i * Math.PI / (freqs.length*0.5));
+        ctx.fillStyle = getBarColor(freqs[i], ctx, barHeight);
         roundRect(ctx, radius, -cfg.barWidth / 2, barHeight, cfg.barWidth, cfg.barBorderRadius, barHeight)
    
         ctx.restore();

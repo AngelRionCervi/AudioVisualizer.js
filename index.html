@@ -1,32 +1,36 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <title>Audio Visualizer</title>
- 
+
     <script type="text/javascript" src="index.js"></script>
     <style>
-        body{
+        body {
             margin: 0;
             padding: 0;
         }
-        html,body{
+
+        html,
+        body {
             overflow: hidden;
         }
     </style>
 </head>
+
 <body>
     <canvas id="renderer"></canvas>
 
     <script>
         let config = {
-            width: 400,
-            height: 400,
-            barNbr: 10,
+            width: 800,
+            height: 600,
+            barNbr: 30,
             barWidth: 8,
             minBarHeight: 0,
-            maxBarHeight: 500,
-            barHeightMult: 0.8,
+            maxBarHeight: 50000,
+            barHeightMult: 0.5,
             barBorderRadius: 4,
             gradientRadiusMultiplier: 2,
             doubleBorderRadius: true,
@@ -38,14 +42,18 @@
             mainColorChannelValue: 200,
             colorFrequencyMultiplier: 1.3,
             gradientColors: ['white', 'yellow', 'orange', 'red', 'purple'],
+            freqRange: [40, 300], //0 -> 4096
             circularType: {
-                radius: 30,
+                radius: 40,
+                skipNull: false,
             }
         }
 
         document.addEventListener('click', () => {
-            initVisualizer(document.getElementById('renderer'), "audio/Canon.flac", config)
+           
+            initVisualizer(document.getElementById('renderer'), "audio/h.mp3", config)
         })
     </script>
 </body>
+
 </html>
