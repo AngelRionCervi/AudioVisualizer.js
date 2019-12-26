@@ -1,6 +1,9 @@
 let fullFrequencies;
+let amplitude;
 let cfg = {};
 let canvas;
+let radInc = 0;
+let radIncVal = 0;
 
 function nearestPow2(nbr) {
     if (nbr <= 32) {
@@ -8,6 +11,11 @@ function nearestPow2(nbr) {
     } else {
         return Math.pow(2, Math.round(Math.log(nbr) / Math.log(2))); 
     }
+}
+
+function getAvg(arr) {
+    const total = arr.reduce((acc, c) => acc + c, 0);
+    return (total / arr.length) * cfg.circularType.innerCircleMult;
 }
 
 function splitUp(arr, n) {
@@ -47,7 +55,7 @@ function initVisualizer(c, s, f) {
     source = context.createMediaElementSource(audio);
     source.connect(analyser);
     analyser.connect(context.destination);
-    analyser.fftSize = 4096;
+    analyser.fftSize = 2048;
   
     //frequencies = new Uint8Array(analyser.frequencyBinCount);
     fullFrequencies = new Uint8Array(analyser.fftSize)
@@ -70,16 +78,6 @@ function renderCircular() {
     
     let centerX = canvas.width / 2;
     let centerY = canvas.height / 2;
-    let radius = cfg.circularType.radius;
-
-    ctx.fillStyle = cfg.backgroundColor;
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-   
-    ctx.beginPath();
-    ctx.arc(centerX, centerY, cfg.circularType.radius, 0, 2 * Math.PI);
-    ctx.stroke();
-
-    analyser.getByteFrequencyData(fullFrequencies);
 
     let freqs;
     freqs = splitUp(fullFrequencies.slice(cfg.freqRange[0], cfg.freqRange[1]), cfg.barNbr)
@@ -89,6 +87,17 @@ function renderCircular() {
     } else {
         freqs = new Uint8Array(freqs);
     }
+
+    let radius = cfg.circularType.innerCircleReact ? cfg.circularType.radius + getAvg(freqs) : cfg.circularType.radius;
+    radius += radInc;
+    ctx.fillStyle = cfg.backgroundColor;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+   
+    ctx.beginPath();
+    ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
+    ctx.stroke();
+
+    analyser.getByteFrequencyData(fullFrequencies);
 
     ctx.translate(canvas.width / 2, canvas.height / 2);
     
@@ -102,10 +111,11 @@ function renderCircular() {
         ctx.save();
         ctx.rotate(i * Math.PI / (freqs.length*0.5));
         ctx.fillStyle = getBarColor(freqs[i], ctx, barHeight);
-        roundRect(ctx, radius, -cfg.barWidth / 2, barHeight, cfg.barWidth, cfg.barBorderRadius, barHeight)
+        joined(ctx, radius, -cfg.barWidth / 2, barHeight, cfg.barWidth, cfg.barBorderRadius, barHeight)
    
         ctx.restore();
     }
+    radInc += radIncVal;
     requestAnimationFrame(renderCircular);
 }
 
@@ -172,7 +182,75 @@ function roundRect(ctx, x, y, width, height, radius, barHeight) {
     ctx.closePath();
     
     ctx.fill();
-  
+}
+
+function triangle(ctx, x, y, width, height, radius, barHeight) {
+
+    if (radius <= barHeight) {
+        radius = {tl: radius, tr: radius, br: radius, bl: radius};
+    } else {
+        radius = {tl: 0, tr: 0, br: 0, bl: 0};
+    }
+
+    if (!cfg.doubleBorderRadius) {
+        radius.bl = 0;
+        radius.tl = 0;
+    }
+
+    ctx.beginPath();
+    ctx.moveTo(x, y);
+    /*
+    ctx.lineTo(x, y + width);
+    ctx.lineTo(y, x - height);
+    ctx.strokeStyle = "red"
+    ctx.lineWidth = 1*/ //sick flower
+
+    ctx.lineTo(x + width, y-5);
+    ctx.lineTo(x + width, y+5);
+    
+    ctx.closePath();
+    
+    ctx.fill();
+}
+
+function joined(ctx, x, y, width, height, radius, barHeight, prevFreq, freq) {
+
+    if (radius <= barHeight) {
+        radius = {tl: radius, tr: radius, br: radius, bl: radius};
+    } else {
+        radius = {tl: 0, tr: 0, br: 0, bl: 0};
+    }
+
+    if (!cfg.doubleBorderRadius) {
+        radius.bl = 0;
+        radius.tl = 0;
+    }
+
+    ctx.beginPath();
+    ctx.moveTo(x + width, y);
+    /*
+    ctx.lineTo(x, y + width);
+    ctx.lineTo(y, x - height);*/ //sick flower
+
+    /* ctx.lineTo(x-width , y-5);
+    ctx.lineTo(x , y+5); */ //sharp rose
+    ctx.strokeStyle = "red"
+    ctx.lineWidth = 1
+    /*
+    ctx.lineTo(x, y);
+    ctx.lineTo(y, y-1);*/ //bar with middle circle
+    //ctx.lineTo(x+height , y);
+    /*
+    ctx.lineTo(x, y);
+    ctx.lineTo(y, x+width);*/ //sick geometry
+
+    /*ctx.lineTo(x, y);
+    ctx.lineTo(y+width, y);*/ //vertical lines
+    ctx.lineTo(x, y);
+    ctx.lineTo(y+width, y);
+    //ctx.closePath();
+    
+    ctx.stroke();
 }
 
 

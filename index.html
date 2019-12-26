@@ -26,12 +26,12 @@
         let config = {
             width: 800,
             height: 600,
-            barNbr: 30,
-            barWidth: 8,
+            barNbr: 40,
+            barWidth: 10,
             minBarHeight: 0,
             maxBarHeight: 50000,
-            barHeightMult: 0.5,
-            barBorderRadius: 4,
+            barHeightMult: 0.6,
+            barBorderRadius: 5,
             gradientRadiusMultiplier: 2,
             doubleBorderRadius: true,
             backgroundColor: "#000000",
@@ -42,16 +42,18 @@
             mainColorChannelValue: 200,
             colorFrequencyMultiplier: 1.3,
             gradientColors: ['white', 'yellow', 'orange', 'red', 'purple'],
-            freqRange: [40, 300], //0 -> 4096
+            freqRange: [100, 200], //0 -> 2048
             circularType: {
-                radius: 40,
+                radius: 80,
+                innerCircleReact: false,
+                innerCircleMult: 0.5,
                 skipNull: false,
             }
         }
 
         document.addEventListener('click', () => {
            
-            initVisualizer(document.getElementById('renderer'), "audio/h.mp3", config)
+            initVisualizer(document.getElementById('renderer'), "audio/Canon.flac", config)
         })
     </script>
 </body>
