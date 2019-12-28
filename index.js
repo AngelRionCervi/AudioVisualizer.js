@@ -1,6 +1,8 @@
 class CircularType {
     constructor(canvas, audioSrc, cfg) {
+
         Object.assign(this, cfg);
+
         this.fullFrequencies;
         this.amplitude;
         this.canvas = canvas;
@@ -11,6 +13,7 @@ class CircularType {
         this.source;
         this.audio;
         this.audioSrc = audioSrc;
+        this.rotPos = [];
     }
 
     nearestPow2(nbr) {
@@ -108,6 +111,8 @@ class CircularType {
 
         ctx.translate(this.canvas.width / 2, this.canvas.height / 2);
 
+        this.rotPos = [];
+
         for (let i = 0; i < freqs.length; i++) {
 
             let barHeight = freqs[i] * this.barHeightMult + this.minBarHeight;
@@ -116,12 +121,14 @@ class CircularType {
             }
 
             ctx.save();
+            this.rotPos.push(ctx.lineToAngle(radius+barHeight, -this.barWidth / 2, barHeight, i * Math.PI / (freqs.length * 0.5)));
             ctx.rotate(i * Math.PI / (freqs.length * 0.5));
             ctx.fillStyle = this.getBarColor(freqs[i], ctx, barHeight);
-            this.joined(ctx, radius, -this.barWidth / 2, barHeight, this.barWidth, this.barBorderRadius, barHeight, freqs[i])
+            this.joined(ctx, radius, -this.barWidth / 2, barHeight, this.barWidth, this.barBorderRadius, barHeight, freqs[i], i)
 
             ctx.restore();
         }
+        console.log(this.rotPos)
         this.radInc += this.radIncVal;
         requestAnimationFrame(() => this.renderCircular());
     }
@@ -220,7 +227,7 @@ class CircularType {
         ctx.fill();
     }
 
-    joined(ctx, x, y, width, height, radius, barHeight, prevFreq, freq) {
+    joined(ctx, x, y, width, height, radius, barHeight, freq, index) {
 
         if (radius <= barHeight) {
             radius = { tl: radius, tr: radius, br: radius, bl: radius };
@@ -234,7 +241,7 @@ class CircularType {
         }
 
         ctx.beginPath();
-        ctx.moveTo(x + width, y);
+        ctx.moveTo(x, y);
         /*
         ctx.lineTo(x, y + width);
         ctx.lineTo(y, x - height);*/ //sick flower
@@ -253,9 +260,23 @@ class CircularType {
 
         /*ctx.lineTo(x, y);
         ctx.lineTo(y+width, y);*/ //vertical lines
-        ctx.lineTo(x, y);
-        ctx.lineTo(y + width, x);
+        //ctx.lineTo(x + width, y);
+        //ctx.lineTo(y + width, x);
         //ctx.closePath();
+        
+        if(this.rotPos.length > 2) {
+            ctx.lineTo(this.rotPos[index].x, this.rotPos[index-1].x);
+            //console.log(this.rotPos[index-1].x)
+        }
+        
+/*
+        this.rotPos.forEach((v, i, a) => {
+            if(i < a.length - 1) {
+                ctx.lineTo(v.x+barHeight, a[i+1].x);
+            } else {
+                ctx.lineTo(v.x, a[0].x);
+            }
+        })*/
 
         ctx.stroke();
     }

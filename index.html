@@ -52,10 +52,25 @@
         }
 
         const visualizer = new CircularType(document.getElementById('renderer'), "audio/Canon.flac", config);
-        
+
 
         document.addEventListener('click', () => {
-           
+
+            if (typeof CanvasRenderingContext2D !== 'undefined') {
+
+                CanvasRenderingContext2D.prototype.lineToAngle =
+                    function (x1, y1, length, angle) {
+
+                        
+
+                        var x2 = x1 + length * Math.cos(angle),
+                            y2 = y1 + length * Math.sin(angle);
+
+                        return { x: x2, y: y2 };
+                    }
+            }
+
+
             visualizer.init();
         })
     </script>
