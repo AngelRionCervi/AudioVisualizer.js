@@ -51,9 +51,12 @@
             }
         }
 
+        const visualizer = new CircularType(document.getElementById('renderer'), "audio/Canon.flac", config);
+        
+
         document.addEventListener('click', () => {
            
-            initVisualizer(document.getElementById('renderer'), "audio/Canon.flac", config)
+            visualizer.init();
         })
     </script>
 </body>
