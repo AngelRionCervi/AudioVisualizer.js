@@ -55,9 +55,9 @@
             barWidth: 20,
             minBarHeight: 0,
             maxBarHeight: 50000,
-            barHeightMult: 2,
+            barHeightMult: 1.3,
             barBorderRadius: 10,
-            gradientRadiusMultiplier: 2,
+            gradientLengthMultiplier: 1.2,
             doubleBorderRadius: true,
             backgroundColor: "#000000",
             barColorType: "gradient",
@@ -65,12 +65,12 @@
             mainColorChannel: "red",
             mainColorChannelValue: 200,
             colorFrequencyMultiplier: 1.3,
-            gradientColors: ['white', 'yellow', 'orange', 'red'],
+            gradientColors: ['white', 'yellow', 'orange', 'red', 'purple'],
             freqRange: [100, 200], //0 -> 2048
             skipNull: false,
             barSpacingInc: 20,
             doubleExpand : true,
-            gradientDoubleExpand: true,
+            gradientDoubleExpand: false,
         }
 
         const visualizer = new FlatType(document.getElementById('renderer'), "audio/Canon.flac", configFlat);
