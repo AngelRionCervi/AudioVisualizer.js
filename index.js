@@ -372,10 +372,10 @@ class FlatType {
             case "gradient":
                 let gradient;
                 if (this.gradientDoubleExpand) {
-                    gradient = ctx.createLinearGradient(0, 0, barHeight, 0);
+                    gradient = ctx.createLinearGradient(0, 0, barHeight+(this.barWidth*2), 0);
                     for (let u = 1; u < gradColors.length; u++) {
-                        gradient.addColorStop((u / (gradColors.length*2))+0.025, gradColors[gradColors.length-u]);
-                        //console.log((u / (gradColors.length*2))+0.025, gradColors[gradColors.length-u])
+                        gradient.addColorStop((u / (gradColors.length*2)), gradColors[gradColors.length-u]);
+                        //console.log((u / (gradColors.length*2)), gradColors[gradColors.length-u])
                     }
                     for (let u = 0; u < gradColors.length; u++) {
                         if(u === 0) {
@@ -383,8 +383,8 @@ class FlatType {
                             //console.log((u / (gradColors.length*2))+0.5, gradColors[0])
                         } else {
                             
-                                gradient.addColorStop((u / (gradColors.length*2))+0.5, gradColors[u]);
-                                //console.log((u / (gradColors.length*2))+0.5, gradColors[u])
+                            gradient.addColorStop((u / (gradColors.length*2))+0.5, gradColors[u]);
+                            //console.log((u / (gradColors.length*2))+0.5, gradColors[u])
                             
                             
                         }
