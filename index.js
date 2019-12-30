@@ -1,6 +1,6 @@
-function getAvg(arr) {
+function getAvg(arr, innerCircleMult) {
     const total = arr.reduce((acc, c) => acc + c, 0);
-    return (total / arr.length) * this.innerCircleMult;
+    return (total / arr.length) * innerCircleMult;
 }
 
 function splitUp(arr, n) {
@@ -123,6 +123,7 @@ function joined(ctx, x, y, width, height, radius, barHeight, prevFreq, freq) {
 
     /*ctx.lineTo(x, y);
     ctx.lineTo(y+width, y);*/ //vertical lines
+    
     ctx.lineTo(x, y);
     ctx.lineTo(y + width, x);
     //ctx.closePath();
@@ -170,8 +171,8 @@ class CircularType {
 
     renderCircular() {
 
-        this.canvas.width = 500;
-        this.canvas.height = 500;
+        this.canvas.width = this.width;
+        this.canvas.height = this.height;
 
         let ctx = this.canvas.getContext("2d");
 
@@ -186,7 +187,7 @@ class CircularType {
             freqs = new Uint8Array(freqs);
         }
 
-        let radius = this.innerCircleReact ? this.radius + getAvg(freqs) : this.radius;
+        let radius = this.innerCircleReact ? this.radius + getAvg(freqs, this.innerCircleMult) : this.radius;
         radius += this.radInc;
         ctx.fillStyle = this.backgroundColor;
         ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
@@ -209,7 +210,7 @@ class CircularType {
             ctx.save();
             ctx.rotate(i * Math.PI / (freqs.length * 0.5));
             ctx.fillStyle = this.getBarColor(freqs[i], ctx, barHeight);
-            triangle(ctx, radius, -this.barWidth / 2, barHeight, this.barWidth, this.barBorderRadius, barHeight, freqs[i])
+            joined(ctx, radius, -this.barWidth / 2, barHeight, this.barWidth, this.barBorderRadius, barHeight, freqs[i])
 
             ctx.restore();
         }
@@ -298,8 +299,8 @@ class FlatType {
 
     renderFlat() {
 
-        this.canvas.width = 500;
-        this.canvas.height = 500;
+        this.canvas.width = this.width;
+        this.canvas.height = this.height;
 
         let ctx = this.canvas.getContext("2d");
 
@@ -375,33 +376,20 @@ class FlatType {
                     gradient = ctx.createLinearGradient(0, 0, barHeight+20, 0);
                     for (let u = 1; u < gradColors.length; u++) {
                         gradient.addColorStop((u / (gradColors.length*2)), gradColors[gradColors.length-u]);
-                        //console.log((u / (gradColors.length*2)), gradColors[gradColors.length-u])
                     }
                     for (let u = 0; u < gradColors.length; u++) {
                         if(u === 0) {
                             gradient.addColorStop((u / (gradColors.length*2))+0.5, gradColors[0]);
-                            //console.log((u / (gradColors.length*2))+0.5, gradColors[0])
                         } else {
-                            
                             gradient.addColorStop((u / (gradColors.length*2))+0.5, gradColors[u]);
-                            //console.log((u / (gradColors.length*2))+0.5, gradColors[u])
-                            
-                            
                         }
-                        
-                        
                     }
-                    
-                
                 } else {
-                    
                     gradient = ctx.createLinearGradient(0, 0, barHeight * this.gradientLengthMultiplier, 0);
                     for (let u = 0; u < gradColors.length; u++) {
                         gradient.addColorStop((u / gradColors.length), gradColors[u]);
                     }
-                    
                 }
-                //throw new Error("Something went badly wrong!");
                 color = gradient;
                 break;
             case "fixedColor":
