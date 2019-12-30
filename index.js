@@ -372,7 +372,7 @@ class FlatType {
             case "gradient":
                 let gradient;
                 if (this.gradientDoubleExpand) {
-                    gradient = ctx.createLinearGradient(0, 0, barHeight+(this.barWidth*2), 0);
+                    gradient = ctx.createLinearGradient(0, 0, barHeight+20, 0);
                     for (let u = 1; u < gradColors.length; u++) {
                         gradient.addColorStop((u / (gradColors.length*2)), gradColors[gradColors.length-u]);
                         //console.log((u / (gradColors.length*2)), gradColors[gradColors.length-u])
