@@ -30,12 +30,76 @@ function splitUp(arr, n) {
     return result;
 }
 
+function getFreqs (freqRange, fullFrequencies, barNbr) {
+
+    if (freqRange.length & 1) throw new Error("The frequency ranges must be even !");
+
+    let freqs = [];
+
+    if (freqRange.length === 2) {
+        freqs = splitUp(fullFrequencies.slice(freqRange[0], freqRange[1]), barNbr);
+    } else {
+        for (let u = 1; u < freqRange.length; u += 2) {
+            let sample = splitUp(fullFrequencies.slice(freqRange[u - 1], freqRange[u]), barNbr/(freqRange.length/2));
+            freqs.push(...sample)
+        }
+    }
+
+    return freqs;
+}
+
+
+function getBarColor(frequency, ctx, barHeight, gradientRadius, gradientColors, colorFrequencyMultiplier, barColorType, mainColorChannel, gradientDoubleExpand, gradientLengthMultiplier, mainBarColor) {
+
+    let color;
+
+    let mult = colorFrequencyMultiplier;
+
+    switch (barColorType) {
+        case "frequency":
+            if (mainColorChannel === "blue") {
+                color = "rgb(" + frequency * mult + ", " + frequency * mult + ", " + mainColorChannelValue + ")";
+            }
+            if (mainColorChannel === "green") {
+                color = "rgb(" + frequency * mult + ", " + mainColorChannelValue + ", " + frequency * mult + ")";
+            }
+            if (mainColorChannel === "red") {
+                color = "rgb(" + mainColorChannelValue + ", " + frequency * mult + ", " + frequency * mult + ")";
+            }
+            break;
+        case "gradient":
+            let gradient;
+            if (gradientDoubleExpand) {
+                gradient = ctx.createLinearGradient(0, 0, barHeight+20, 0);
+                for (let u = 1; u < gradientColors.length; u++) {
+                    gradient.addColorStop((u / (gradientColors.length*2)), gradientColors[gradientColors.length-u]);
+                }
+                for (let u = 0; u < gradientColors.length; u++) {
+                    if(u === 0) {
+                        gradient.addColorStop((u / (gradientColors.length*2))+0.5, gradientColors[0]);
+                    } else {
+                        gradient.addColorStop((u / (gradientColors.length*2))+0.5, gradientColors[u]);
+                    }
+                }
+            } else {
+                gradient = ctx.createLinearGradient(0, 0, barHeight * gradientLengthMultiplier, 0);
+                for (let u = 0; u < gradientColors.length; u++) {
+                    gradient.addColorStop((u / gradientColors.length), gradientColors[u]);
+                }
+            }
+            color = gradient;
+            break;
+        case "fixedColor":
+            color = mainBarColor;
+            break;
+    }
+    return color;
+}
+
+
 function roundRect(ctx, x, y, width, height, radius, barHeight, hey, doubleBorderRadius) {
 
     if (radius <= barHeight) {
-        /*
-        radius = { tl: radius-(barHeight-radius), tr: radius-(barHeight-radius), br: radius-(barHeight-radius), bl: radius-(barHeight-radius) };
-        */ //china temples
         radius = { tl: radius, tr: radius, br: radius, bl: radius };
     } else {
         radius = { tl: radius-(radius-barHeight), tr: radius-(radius-barHeight), br: radius-(radius-barHeight), bl: radius-(radius-barHeight) };
@@ -149,7 +213,6 @@ class CircularType {
     }
 
     init() {
-
         this.audio = new Audio();
         this.context = new window.AudioContext();
         this.analyser = this.context.createAnalyser();
@@ -158,6 +221,7 @@ class CircularType {
         this.source.connect(this.analyser);
         this.analyser.connect(this.context.destination);
         this.analyser.fftSize = 2048;
+        this.analyser.smoothingTimeConstant = this.smoothing;
 
         //frequencies = new Uint8Array(analyser.frequencyBinCount);
         this.fullFrequencies = new Uint8Array(this.analyser.fftSize)
@@ -179,7 +243,7 @@ class CircularType {
         let centerX = this.canvas.width / 2;
         let centerY = this.canvas.height / 2;
 
-        let freqs = splitUp(this.fullFrequencies.slice(this.freqRange[0], this.freqRange[1]), this.barNbr)
+        let freqs = getFreqs(this.freqRange, this.fullFrequencies, this.barNbr);
 
         if (this.skipNull) {
             freqs = new Uint8Array(freqs.filter(el => el != 0));
@@ -209,8 +273,8 @@ class CircularType {
 
             ctx.save();
             ctx.rotate(i * Math.PI / (freqs.length * 0.5));
-            ctx.fillStyle = this.getBarColor(freqs[i], ctx, barHeight);
-            joined(ctx, radius, -this.barWidth / 2, barHeight, this.barWidth, this.barBorderRadius, barHeight, freqs[i])
+            ctx.fillStyle = getBarColor(freqs[i], ctx, barHeight, this.gradientRadius, this.gradientColors, this.colorFrequencyMultiplier, this.barColorType, this.mainColorChannel, this.gradientDoubleExpand, this.gradientLengthMultiplier, this.mainBarColor);
+            roundRect(ctx, radius, -this.barWidth / 2, barHeight, this.barWidth, this.barBorderRadius, barHeight, freqs[i], this.doubleBorderRadius)
 
             ctx.restore();
         }
@@ -218,46 +282,7 @@ class CircularType {
         requestAnimationFrame(() => this.renderCircular());
     }
 
-
-    getBarColor(frequency, ctx, barHeight) {
-
-        let color;
-
-        let gradientRadius = this.gradientRadius;
-        let gradColors = this.gradientColors
-        let mult = this.colorFrequencyMultiplier;
-
-        switch (this.barColorType) {
-            case "frequency":
-                if (this.mainColorChannel === "blue") {
-                    color = "rgb(" + frequency * mult + ", " + frequency * mult + ", " + this.mainColorChannelValue + ")";
-                }
-                if (this.mainColorChannel === "green") {
-                    color = "rgb(" + frequency * mult + ", " + this.mainColorChannelValue + ", " + frequency * mult + ")";
-                }
-                if (this.mainColorChannel === "red") {
-                    color = "rgb(" + this.mainColorChannelValue + ", " + frequency * mult + ", " + frequency * mult + ")";
-                }
-                break;
-            case "gradient":
-                let radius = gradientRadius === "barSize" ? barHeight : gradientRadius;
-                let gradient = ctx.createLinearGradient(0, 0, radius * this.gradientRadiusMultiplier, 0);
-                for (let u = 0; u < gradColors.length; u++) {
-                    gradient.addColorStop((u / gradColors.length), gradColors[u]);
-                }
-                color = gradient;
-                break;
-            case "fixedColor":
-                color = this.mainBarColor;
-                break;
-        }
-        return color;
-    }
 }
-
-
-
-
 
 
 
@@ -277,7 +302,6 @@ class FlatType {
     }
 
     init() {
-
         this.audio = new Audio();
         this.context = new window.AudioContext();
         this.analyser = this.context.createAnalyser();
@@ -286,7 +310,7 @@ class FlatType {
         this.source.connect(this.analyser);
         this.analyser.connect(this.context.destination);
         this.analyser.fftSize = 2048;
-
+        this.analyser.smoothingTimeConstant = this.smoothing;
         //frequencies = new Uint8Array(analyser.frequencyBinCount);
         this.fullFrequencies = new Uint8Array(this.analyser.fftSize)
 
@@ -307,7 +331,7 @@ class FlatType {
         let centerX = this.canvas.width / 2;
         let centerY = this.canvas.height / 2;
 
-        let freqs = splitUp(this.fullFrequencies.slice(this.freqRange[0], this.freqRange[1]), this.barNbr)
+        let freqs = getFreqs(this.freqRange, this.fullFrequencies, this.barNbr);
 
         if (this.skipNull) {
             freqs = new Uint8Array(freqs.filter(el => el != 0));
@@ -342,61 +366,11 @@ class FlatType {
             ctx.save();
             ctx.translate((this.canvas.width-calcWidth)/2 + barSpacing, centerY+(doubleExp/2));
             ctx.rotate(-Math.PI/2);
-            ctx.fillStyle = this.getBarColor(freqs[i], ctx, barHeight);
+            ctx.fillStyle = getBarColor(freqs[i], ctx, barHeight, this.gradientRadius, this.gradientColors, this.colorFrequencyMultiplier, this.barColorType, this.mainColorChannel, this.gradientDoubleExpand, this.gradientLengthMultiplier, this.mainBarColor);
             roundRect(ctx, 10, -this.barWidth / 2, barHeight, this.barWidth, this.barBorderRadius, barHeight, freqs[i], this.doubleBorderRadius)
             ctx.restore();
         }
         requestAnimationFrame(() => this.renderFlat());
-    }
-
-
-    getBarColor(frequency, ctx, barHeight) {
-
-        let color;
-
-        let gradientRadius = this.gradientRadius;
-        let gradColors = this.gradientColors
-        let mult = this.colorFrequencyMultiplier;
-
-        switch (this.barColorType) {
-            case "frequency":
-                if (this.mainColorChannel === "blue") {
-                    color = "rgb(" + frequency * mult + ", " + frequency * mult + ", " + this.mainColorChannelValue + ")";
-                }
-                if (this.mainColorChannel === "green") {
-                    color = "rgb(" + frequency * mult + ", " + this.mainColorChannelValue + ", " + frequency * mult + ")";
-                }
-                if (this.mainColorChannel === "red") {
-                    color = "rgb(" + this.mainColorChannelValue + ", " + frequency * mult + ", " + frequency * mult + ")";
-                }
-                break;
-            case "gradient":
-                let gradient;
-                if (this.gradientDoubleExpand) {
-                    gradient = ctx.createLinearGradient(0, 0, barHeight+20, 0);
-                    for (let u = 1; u < gradColors.length; u++) {
-                        gradient.addColorStop((u / (gradColors.length*2)), gradColors[gradColors.length-u]);
-                    }
-                    for (let u = 0; u < gradColors.length; u++) {
-                        if(u === 0) {
-                            gradient.addColorStop((u / (gradColors.length*2))+0.5, gradColors[0]);
-                        } else {
-                            gradient.addColorStop((u / (gradColors.length*2))+0.5, gradColors[u]);
-                        }
-                    }
-                } else {
-                    gradient = ctx.createLinearGradient(0, 0, barHeight * this.gradientLengthMultiplier, 0);
-                    for (let u = 0; u < gradColors.length; u++) {
-                        gradient.addColorStop((u / gradColors.length), gradColors[u]);
-                    }
-                }
-                color = gradient;
-                break;
-            case "fixedColor":
-                color = this.mainBarColor;
-                break;
-        }
-        return color;
     }
 }
 

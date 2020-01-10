@@ -26,38 +26,41 @@
         let configCircle = {
             width: 800,
             height: 600,
-            barNbr: 40,
+            barNbr: 2,
             barWidth: 10,
-            minBarHeight: 0,
+            minBarHeight: 10,
             maxBarHeight: 50000,
             barHeightMult: 0.6,
             barBorderRadius: 5,
             gradientRadiusMultiplier: 4,
+            gradientLengthMultiplier: 2,
             doubleBorderRadius: true,
             backgroundColor: "#000000",
-            barColorType: "gradient",
+            barColorType: "fixedColor",
             gradientRadius: 'barSize',
             mainColorChannel: "red",
             mainBarColor: "white",
             mainColorChannelValue: 200,
             colorFrequencyMultiplier: 1.3,
             gradientColors: ['white', 'yellow', 'orange', 'red', 'purple'],
-            freqRange: [100, 500], //0 -> 2048
+            freqRange: [100, 300, 500, 1000], //0 -> 2048
             radius: 80,
-            innerCircleReact: true,
+            innerCircleReact: false,
             innerCircleMult: 0.2,
             skipNull: false,
+            smoothing: 0.9,
+            gradientDoubleExpand: false,
         }
 
         let configFlat = {
             width: 800,
             height: 600,
-            barNbr: 10,
-            barWidth: 10,
+            barNbr: 2,
+            barWidth: 14,
             minBarHeight: 0,
             maxBarHeight: 50000,
             barHeightMult: 1.2,
-            barBorderRadius: 5,
+            barBorderRadius: 7,
             gradientLengthMultiplier: 1.2,
             doubleBorderRadius: true,
             backgroundColor: "#000000",
@@ -67,14 +70,15 @@
             mainColorChannelValue: 50,
             colorFrequencyMultiplier: 1.3,
             gradientColors: ['white', 'yellow', 'orange', 'red', 'purple'],
-            freqRange: [100, 200], //0 -> 2048
+            freqRange: [100, 300, 300, 700], //0 -> 2048
             skipNull: false,
             barSpacingInc: 30,
             doubleExpand : true,
             gradientDoubleExpand: true,
+            smoothing: 0.93,
         }
 
-        const visualizer = new FlatType(document.getElementById('renderer'), "audio/Canon.flac", configFlat);
+        const visualizer = new CircularType(document.getElementById('renderer'), "audio/Canon.flac", configCircle);
         
 
         document.addEventListener('click', () => {
