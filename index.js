@@ -102,7 +102,8 @@ function roundRect(ctx, x, y, width, height, radius, barHeight, hey, doubleBorde
     if (radius <= barHeight) {
         radius = { tl: radius, tr: radius, br: radius, bl: radius };
     } else {
-        radius = { tl: radius-(radius-barHeight), tr: radius-(radius-barHeight), br: radius-(radius-barHeight), bl: radius-(radius-barHeight) };
+        let newRad = radius-(radius-barHeight);
+        radius = { tl: newRad, tr: newRad, br: newRad, bl: newRad };
     }
 
     if (!doubleBorderRadius) {
