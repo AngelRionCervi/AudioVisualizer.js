@@ -252,10 +252,10 @@ class CircularType {
             freqs = new Uint8Array(freqs);
         }
 
-        let radius = this.innerCircleReact ? this.radius + getAvg(freqs, this.innerCircleMult) : this.radius;
-        radius += this.radInc;
         ctx.fillStyle = this.backgroundColor;
         ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+
+        let radius = this.innerCircleReact ? this.radius + getAvg(freqs, this.innerCircleMult) : this.radius;
 
         ctx.beginPath();
         ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
@@ -263,7 +263,13 @@ class CircularType {
 
         this.analyser.getByteFrequencyData(this.fullFrequencies);
 
-        ctx.translate(this.canvas.width / 2, this.canvas.height / 2);
+        if (this.position === "centered") {
+            ctx.translate(this.canvas.width / 2, this.canvas.height / 2);
+        } else {
+            let x = this.position[0];
+            let y = this.position[1];
+            ctx.translate(x, y);
+        }
 
         for (let i = 0; i < freqs.length; i++) {
 
@@ -365,7 +371,16 @@ class FlatType {
             }
 
             ctx.save();
-            ctx.translate((this.canvas.width-calcWidth)/2 + barSpacing, centerY+(doubleExp/2));
+            
+
+            if (this.position === "centered") {
+                ctx.translate((this.canvas.width-calcWidth)/2 + barSpacing, centerY+(doubleExp/2));
+            } else {
+                let x = this.position[0] + barSpacing;
+                let y = this.position[1];
+                ctx.translate(x, y);
+            }
+
             ctx.rotate(-Math.PI/2);
             ctx.fillStyle = getBarColor(freqs[i], ctx, barHeight, this.gradientRadius, this.gradientColors, this.colorFrequencyMultiplier, this.barColorType, this.mainColorChannel, this.gradientDoubleExpand, this.gradientLengthMultiplier, this.mainBarColor);
             roundRect(ctx, 10, -this.barWidth / 2, barHeight, this.barWidth, this.barBorderRadius, barHeight, freqs[i], this.doubleBorderRadius)

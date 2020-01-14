@@ -50,6 +50,7 @@
             skipNull: false,
             smoothing: 0.9,
             gradientDoubleExpand: false,
+            position: [250, 250],
         }
 
         let configFlat = {
@@ -76,9 +77,10 @@
             doubleExpand : true,
             gradientDoubleExpand: true,
             smoothing: 0.93,
+            position: "centered",
         }
 
-        const visualizer = new CircularType(document.getElementById('renderer'), "audio/Canon.flac", configCircle);
+        const visualizer = new FlatType(document.getElementById('renderer'), "audio/Canon.flac", configFlat);
         
 
         document.addEventListener('click', () => {
