@@ -4,8 +4,8 @@ function getAvg(arr, innerCircleMult) {
 }
 
 function splitUp(arr, n) {
-    let rest = arr.length % n // how much to divide
-    let restUsed = rest // to keep track of the division over the elements
+    let rest = arr.length % n 
+    let restUsed = rest 
     let partLength = Math.floor(arr.length / n)
     let result = [];
 
@@ -13,17 +13,17 @@ function splitUp(arr, n) {
         let end = partLength + i
         let add = false;
 
-        if (rest !== 0 && restUsed) { // should add one element for the division
+        if (rest !== 0 && restUsed) { 
             end++;
-            restUsed--; // we've used one division element now
+            restUsed--; 
             add = true;
         }
 
         let middle = Math.floor(end - (partLength / 2)) - 1;
-        result.push(arr[middle]); // part of the array
+        result.push(arr[middle]); 
 
         if (add) {
-            i++; // also increment i in the case we added an extra element for division
+            i++; 
         }
     }
 
@@ -97,7 +97,7 @@ function getBarColor(frequency, ctx, barHeight, gradientRadius, gradientColors, 
 }
 
 
-function roundRect(ctx, x, y, width, height, radius, barHeight, hey, doubleBorderRadius) {
+function roundRect(ctx, x, y, width, height, radius, barHeight, freq, doubleBorderRadius) {
 
     if (radius <= barHeight) {
         radius = { tl: radius, tr: radius, br: radius, bl: radius };
@@ -122,6 +122,13 @@ function roundRect(ctx, x, y, width, height, radius, barHeight, hey, doubleBorde
     ctx.lineTo(x, y + radius.tl);
     ctx.quadraticCurveTo(x, y, x + radius.tl, y);
     ctx.closePath();
+
+    ctx.fill();
+}
+
+function rect(ctx, x, y, width, height, radius, barHeight, freq) {
+
+    ctx.rect(x, y, width,height)
 
     ctx.fill();
 }
@@ -241,8 +248,8 @@ class CircularType {
 
         let ctx = this.canvas.getContext("2d");
 
-        let centerX = this.canvas.width / 2;
-        let centerY = this.canvas.height / 2;
+        let centerX = 0;
+        let centerY = 0;
 
         let freqs = getFreqs(this.freqRange, this.fullFrequencies, this.barNbr);
 
@@ -257,19 +264,17 @@ class CircularType {
 
         let radius = this.innerCircleReact ? this.radius + getAvg(freqs, this.innerCircleMult) : this.radius;
 
-        ctx.beginPath();
-        ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
-        ctx.stroke();
+        if (this.position === "centered") {
+            centerX = this.canvas.width / 2;
+            centerY = this.canvas.height / 2;
+        } else {
+            centerX = this.position[0];
+            centerY= this.position[1];
+        }
+
+        ctx.translate(centerX, centerY);
 
         this.analyser.getByteFrequencyData(this.fullFrequencies);
-
-        if (this.position === "centered") {
-            ctx.translate(this.canvas.width / 2, this.canvas.height / 2);
-        } else {
-            let x = this.position[0];
-            let y = this.position[1];
-            ctx.translate(x, y);
-        }
 
         for (let i = 0; i < freqs.length; i++) {
 
@@ -281,11 +286,11 @@ class CircularType {
             ctx.save();
             ctx.rotate(i * Math.PI / (freqs.length * 0.5));
             ctx.fillStyle = getBarColor(freqs[i], ctx, barHeight, this.gradientRadius, this.gradientColors, this.colorFrequencyMultiplier, this.barColorType, this.mainColorChannel, this.gradientDoubleExpand, this.gradientLengthMultiplier, this.mainBarColor);
-            roundRect(ctx, radius, -this.barWidth / 2, barHeight, this.barWidth, this.barBorderRadius, barHeight, freqs[i], this.doubleBorderRadius)
+            rect(ctx, radius, -this.barWidth / 2, barHeight, this.barWidth, this.barBorderRadius, barHeight, freqs[i], this.doubleBorderRadius)
 
             ctx.restore();
         }
-        this.radInc += this.radIncVal;
+
         requestAnimationFrame(() => this.renderCircular());
     }
 
@@ -335,7 +340,6 @@ class FlatType {
 
         let ctx = this.canvas.getContext("2d");
 
-        let centerX = this.canvas.width / 2;
         let centerY = this.canvas.height / 2;
 
         let freqs = getFreqs(this.freqRange, this.fullFrequencies, this.barNbr);
@@ -351,7 +355,6 @@ class FlatType {
 
         this.analyser.getByteFrequencyData(this.fullFrequencies);
 
-        //ctx.translate(this.canvas.width / 2, this.canvas.height / 2);
         let calcWidth = (this.barSpacingInc * freqs.length) + (this.barWidth * freqs.length);
         let barSpacing = -(this.barSpacingInc);
 
@@ -371,19 +374,22 @@ class FlatType {
             }
 
             ctx.save();
-            
 
+            let posX = 0;
+            let posY = 0;
+            
             if (this.position === "centered") {
-                ctx.translate((this.canvas.width-calcWidth)/2 + barSpacing, centerY+(doubleExp/2));
+                posX = (this.canvas.width-calcWidth)/2 + barSpacing;
+                posY = centerY+(doubleExp/2);
             } else {
-                let x = this.position[0] + barSpacing;
-                let y = this.position[1];
-                ctx.translate(x, y);
+                posX = this.position[0] + barSpacing;
+                posY = this.position[1];
             }
+            ctx.translate(posX, posY);
 
             ctx.rotate(-Math.PI/2);
             ctx.fillStyle = getBarColor(freqs[i], ctx, barHeight, this.gradientRadius, this.gradientColors, this.colorFrequencyMultiplier, this.barColorType, this.mainColorChannel, this.gradientDoubleExpand, this.gradientLengthMultiplier, this.mainBarColor);
-            roundRect(ctx, 10, -this.barWidth / 2, barHeight, this.barWidth, this.barBorderRadius, barHeight, freqs[i], this.doubleBorderRadius)
+            rect(ctx, 10, -this.barWidth / 2, barHeight, this.barWidth, this.barBorderRadius, barHeight, freqs[i], this.doubleBorderRadius)
             ctx.restore();
         }
         requestAnimationFrame(() => this.renderFlat());
